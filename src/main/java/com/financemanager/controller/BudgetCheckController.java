@@ -1,0 +1,7 @@
+package com.financemanager.controller;
+import com.financemanager.entity.User; import com.financemanager.repository.*; import com.financemanager.service.UserService; import org.springframework.security.core.annotation.AuthenticationPrincipal; import org.springframework.security.core.userdetails.UserDetails; import org.springframework.web.bind.annotation.*; import java.math.BigDecimal; import java.time.*; import java.util.Map;
+@RestController public class BudgetCheckController {
+ private final UserService users; private final BudgetRepository budgets; private final TransactionSplitRepository splits;
+ public BudgetCheckController(UserService u,BudgetRepository b,TransactionSplitRepository s){users=u;budgets=b;splits=s;}
+ @GetMapping("/api/v1/budgets/check") public Map<String,Object> check(@AuthenticationPrincipal UserDetails principal,@RequestParam Long categoryId,@RequestParam BigDecimal amount,@RequestParam LocalDate date){User user=users.findByUsername(principal.getUsername());YearMonth month=YearMonth.from(date);var budget=budgets.findByUserIdAndCategoryId(user.getId(),categoryId);if(budget.isEmpty())return Map.of("breached",false,"message","No budget set");BigDecimal spent=splits.sumByUserAndCategoryAndDateRange(user.getId(),categoryId,month.atDay(1),month.atEndOfMonth()).add(amount);BigDecimal limit=budget.get().getMonthlyLimit();return Map.of("breached",spent.compareTo(limit)>0,"spent",spent,"limit",limit,"message",String.format("This will bring category spending to %.2f against a %.2f limit.",spent,limit));}
+}
