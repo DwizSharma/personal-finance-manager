@@ -2,6 +2,7 @@ package com.financemanager.controller;
 
 import com.financemanager.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +39,10 @@ public class    AuthController {
             return "redirect:/login?registered";
         } catch (IllegalArgumentException ex) {
             model.addAttribute("error", ex.getMessage());
+            return "register";
+        } catch (DataAccessException ex) {
+            // Show a message on the form instead of a 500 page if the DB rejects the insert.
+            model.addAttribute("error", "Could not create the account (database error). Please try again.");
             return "register";
         }
     }

@@ -30,6 +30,15 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    /**
+     * Percentage of a category budget at which the user is warned (default 80).
+     * Mapped explicitly because databases created by earlier versions of this app
+     * already have a NOT NULL budget_alert_threshold column on users; without a
+     * value here every registration INSERT failed with MySQL error 1364.
+     */
+    @Column(name = "budget_alert_threshold", nullable = false)
+    private Integer budgetAlertThreshold = 80;
+
     public enum Role { ROLE_USER, ROLE_ADMIN }
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -65,6 +74,9 @@ public class User {
     public void setRole(Role role) { this.role = role; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public Integer getBudgetAlertThreshold() { return budgetAlertThreshold; }
+    public void setBudgetAlertThreshold(Integer budgetAlertThreshold) { this.budgetAlertThreshold = budgetAlertThreshold; }
 
     public List<Income> getIncomes() { return incomes; }
     public void setIncomes(List<Income> incomes) { this.incomes = incomes; }

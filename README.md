@@ -29,20 +29,22 @@ default split automatically the next time the app starts (`SplitBackfillRunner`)
 - Maven 3.8+
 - MySQL Server running locally
 
-## Setup
+## Setup (database)
 
-1. Create the database (or let the app auto-create it — see `application.properties`):
-   ```sql
-   CREATE DATABASE finance_manager;
-   ```
+Run the scripts in `database/` in this order (MySQL Workbench or `mysql -u root -p < file.sql`):
 
-2. Set `DB_USERNAME` and `DB_PASSWORD` in your environment (the datasource defaults to
-   `root` with an empty password). The project does not store database credentials in source.
+| Order | File | When |
+|-------|------|------|
+| 1 | `01_create_database.sql` | always |
+| 2 | `02_repair_existing_users_table.sql` | **only** if the `finance_manager` DB already existed from an older version (fixes `Field 'budget_alert_threshold' doesn't have a default value`) |
+| 3 | `03_create_tables.sql` | always (safe to re-run) |
+| 4 | `04_seed_categories.sql` | optional - the app also seeds categories on startup |
+| 5 | `05_verify.sql` | optional checks |
 
-3. (Optional) Seed default categories:
-   ```bash
-   mysql -u root -p finance_manager < src/main/resources/data.sql
-   ```
+`00_reset_database_OPTIONAL.sql` drops the whole DB for a clean start (then run 1, 3, 4).
+
+Then set `DB_USERNAME` / `DB_PASSWORD` in your environment (or IntelliJ run configuration);
+the datasource defaults to `root` with an empty password.
 
 ## Run
 
@@ -74,8 +76,6 @@ src/main/java/com/financemanager/
                                     # ExpenseController, IncomeController
 src/main/resources/
   application.properties
-  data.sql                         # optional seed categories
-  schema-manual.sql                # optional manual DB setup reference
   templates/                       # Thymeleaf views + fragments/nav.html (shared sidebar)
   static/css/style.css
 ```
@@ -97,7 +97,7 @@ src/main/resources/
 
 The app now includes account, savings goal, notification and UPI sync log mappings,
 bank SMS parsing, a financial health score, theme preferences and the UPI simulator.
-Use `src/main/resources/schema.sql` for the relational schema reference; Hibernate
+Use `database/03_create_tables.sql` for the relational schema reference; Hibernate
 continues to update existing installations through `ddl-auto=update`.
 
 ## Notes
